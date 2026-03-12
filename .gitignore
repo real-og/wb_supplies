@@ -1,0 +1,7 @@
+readme_private.txt
+Pipfile
+Pipfile.lock
+config.json
+test.py
+test.json
+db_worker_log.txt
