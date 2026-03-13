@@ -36,6 +36,7 @@ def get_my_fbs_stocks(auth, warehouse_id, chrt_ids):
     return response
 
 
+# получить остатки по всем складам (для автостока особенно)
 def get_stocks_report_by_products(auth, period_start, period_end):
     url = 'https://seller-analytics-api.wildberries.ru/api/v2/stocks-report/products/products'
     headers = {'Authorization': auth}
