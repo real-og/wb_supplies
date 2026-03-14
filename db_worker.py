@@ -41,7 +41,7 @@ def _get_nmid_key(nmid: int) -> str:
     return f"{nmid_prefix}:{int(nmid)}"
 
 
-def upsert_nmid_data(nmid: int, item: dict) -> None:
+def upsert_nmid_data(nmid: int, vendor: str, item: dict) -> None:
     """
     Добавляет или обновляет данные по конкретному nmID.
     """
@@ -49,6 +49,7 @@ def upsert_nmid_data(nmid: int, item: dict) -> None:
     human_time = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
     payload = {
         "nmID": int(nmid),
+        "vendor": vendor,
         "timestamp": human_time,
         **item
     }
@@ -95,6 +96,7 @@ if __name__ == "__main__":
         for card in cards:
             try:
                 nm_id = card.get("nmID")
+                vendor = card.get("vendorCode")
                 if not nm_id:
                     continue
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
                 )
 
                 data = response_for_nm_id.json()
-                upsert_nmid_data(int(nm_id), data)
+                upsert_nmid_data(int(nm_id), vendor, data)
 
                 time.sleep(STEP_TIMEOUT)
             except Exception:

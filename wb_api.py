@@ -133,3 +133,41 @@ def get_stat_report_wb_offices(auth, task_id):
     response = requests.get(url, headers=headers)
     return response
 
+
+def get_fbw_supplies(auth, status_ids=None, limit=1000, offset=0):
+    url = 'https://supplies-api.wildberries.ru/api/v1/supplies'
+    headers = {'Authorization': auth}
+    params = {
+        'limit': limit,
+        'offset': offset
+    }
+    body = {}
+
+    if status_ids is not None:
+        body['statusIDs'] = status_ids
+
+    response = requests.post(url, headers=headers, params=params, json=body)
+    return response
+
+
+# Получить товары одной FBW-поставки
+def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=0):
+    url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}/goods'
+    headers = {'Authorization': auth}
+    params = {
+        'limit': limit,
+        'offset': offset
+    }
+
+    if is_preorder:
+        params['isPreorderID'] = 'true'
+
+    response = requests.get(url, headers=headers, params=params)
+    return response
+
+def get_fbw_supply_details(auth, supply_id):
+    url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}'
+    headers = {'Authorization': auth}
+    response = requests.get(url, headers=headers)
+    return response
+
