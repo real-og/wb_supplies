@@ -23,12 +23,18 @@ logging.basicConfig(
     encoding="utf-8"
 )
 
-
-
-redis_client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+redis_client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True, db=1)
 
 nmids_key = ACCOUNT_NAME + ":wb_nmids"
 nmid_prefix = ACCOUNT_NAME + ":wb_nmid"
+
+def get_json(key: str):
+    data = redis_client.get(key)
+    return json.loads(data) if data else None
+
+def set_json(key: str, value: dict | list):
+    redis_client.set(key, json.dumps(value, ensure_ascii=False))
+
 
 
 def _get_nmid_key(nmid: int) -> str:
