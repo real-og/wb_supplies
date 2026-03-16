@@ -1,8 +1,4 @@
-from typing import Any
 import db_worker
-
-
-from typing import Any
 
 
 def plan_supply_from_wb_items(
@@ -290,122 +286,26 @@ def plan_supply_from_wb_items(
     }
 
 
-import pandas as pd
 
 
-import pandas as pd
+if __name__ == "__main__":
+    import db_worker
+    import json
+    import wb_api_helper
+    import wb_supply_excel_export
+    import wb_supply_barcode_export
+
+    r = db_worker.get_all_nmid_data()
+    import config_io
+    WB_TOKEN = config_io.get_value('WB_TOKEN')
+
+    result = plan_supply_from_wb_items(r, 2000, 28, in_transit_by_warehouse_vendor=wb_api_helper.get_fbw_in_transit_by_warehouse_and_vendor_code(WB_TOKEN))
+
+    wb_supply_excel_export.export_supply_plan_to_excel(result, 'отчет.xlsx', 28, 2000)
+    wb_supply_barcode_export.export_supply_barcodes_to_excel(result, 'генерация.xlsx', barcode_by_nmid=wb_api_helper.nm_id_to_barcode(WB_TOKEN))
+
+    with open('test.json', 'w') as f:
+        f.write(json.dumps(result))
 
 
-def export_full_supply_report(result: dict, filename="wb_supply_report.xlsx"):
 
-    target_wh = result["best_warehouse"]
-
-    rows = []
-
-    for item in result["items"]:
-
-        office = item["offices"].get(target_wh, {})
-
-        sales_day = item["network_daily_sales"]
-
-        stock_target = office.get("stock", 0)
-        transit_target = office.get("in_transit_qty", 0)
-        effective_target = office.get("effective_stock", 0)
-
-        if sales_day > 0:
-            days_cover = round(effective_target / sales_day, 2)
-        else:
-            days_cover = None
-
-        rows.append({
-            "nmID": item["nmID"],
-            "Vendor": item["vendor"],
-
-            "Sales/day": round(sales_day, 3),
-
-            "Stock total": item["network_stock"],
-            "In transit total": item["network_in_transit"],
-
-            "Effective stock total": item["effective_network_stock"],
-
-            "Shipment planned": item["shipment_qty"],
-
-            "Stock target WH": stock_target,
-            "Transit target WH": transit_target,
-            "Effective target WH": effective_target,
-
-            "Days cover target WH": days_cover
-        })
-
-    df_items = pd.DataFrame(rows)
-
-    # warehouse scores
-    score_rows = []
-
-    for wh, score in result["warehouse_scores"].items():
-
-        score_rows.append({
-            "warehouse": wh,
-            "score": score
-        })
-
-    df_scores = pd.DataFrame(score_rows)
-
-    # summary
-    summary = pd.DataFrame([
-        {"Parameter": "Target days", "Value": result["target_days"]},
-        {"Parameter": "Best warehouse", "Value": result["best_warehouse"]},
-        {"Parameter": "Total shipment", "Value": result["total_shipment"]}
-    ])
-
-    with pd.ExcelWriter(filename, engine="openpyxl") as writer:
-
-        summary.to_excel(writer, sheet_name="summary", index=False)
-        df_items.to_excel(writer, sheet_name="items", index=False)
-        df_scores.to_excel(writer, sheet_name="warehouse_scores", index=False)
-
-    return filename
-
-def export_wb_supply_excel(
-    result: dict,
-    vendor_to_barcode: dict,
-    filename: str = "wb_supply_upload.xlsx"
-):
-
-    rows = []
-
-    for vendor, qty in result["shipment_plan_by_vendor"].items():
-
-        if qty <= 0:
-            continue
-
-        barcode = vendor_to_barcode.get(vendor)
-
-        if not barcode:
-            continue
-
-        rows.append({
-            "Баркод": barcode,
-            "Количество": qty
-        })
-
-    df = pd.DataFrame(rows)
-
-    df.to_excel(filename, index=False)
-
-    return filename
-
-import db_worker
-import json
-import wb_api_helper
-r = db_worker.get_all_nmid_data()
-import config_io
-WB_TOKEN = config_io.get_value('WB_TOKEN')
-
-result = plan_supply_from_wb_items(r, 2000, 28, in_transit_by_warehouse_vendor=wb_api_helper.get_fbw_in_transit_by_warehouse_and_vendor_code(WB_TOKEN))
-
-with open('test.json', 'w') as f:
-    f.write(json.dumps(r))
-
-
-export_full_supply_report(result)

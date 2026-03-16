@@ -98,3 +98,12 @@ def get_fbw_in_transit_by_warehouse_and_vendor_code(auth):
             )
 
     return result
+
+def nm_id_to_barcode(auth):
+    response = wb_api.get_my_cards(auth)
+    result = {}
+    for card in response.json()['cards']:
+        nmId = card['nmID']
+        barcode = card['sizes'][0]['skus'][0]
+        result[nmId] = barcode
+    return result

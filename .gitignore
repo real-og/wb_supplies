@@ -5,3 +5,4 @@ config.json
 test.py
 test.json
 db_worker_log.txt
+*.xlsx
