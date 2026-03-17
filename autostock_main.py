@@ -95,6 +95,8 @@ if __name__ == "__main__":
                 nm_id = card['nmID']
                 chrt_id = card['sizes'][0]['chrtID']
                 vendor = card['vendorCode']
+                if vendor in config_io.get_value('AUTOSTOCK_EXCLUDE'):
+                    continue
                 
                 if check_redis_blacklist(vendor):
                     continue
@@ -117,10 +119,20 @@ if __name__ == "__main__":
                 else:
                     fbw_amount = 0
 
+                # if mode == "NOTIFICATION":
+                #     if (int(fbw_amount) <= 3) and (int(fbs_amount) <= 3) and (not is_less_hour_last_notification_redis(vendor)):
+                #         text = texts.autostock_add_fbs(vendor, fbs_amount, fbw_amount) 
+                #     elif (int(fbw_amount) > 3) and (int(fbs_amount) > 0) and (not is_less_hour_last_notification_redis(vendor)):
+                #         text = texts.autostock_reset_fbs(vendor, fbs_amount, fbw_amount)
+                #     else:
+                #         continue
+                #     renew_last_notification_redis(vendor)
+                #     bot_outer_interface.send_text_message(text)
+
                 if mode == "NOTIFICATION":
-                    if (int(fbw_amount) <= 3) and (int(fbs_amount) <= 3) and (not is_less_hour_last_notification_redis(vendor)):
+                    if (int(fbw_amount) <= 3) and (int(fbs_amount) <= 3):
                         text = texts.autostock_add_fbs(vendor, fbs_amount, fbw_amount) 
-                    elif (int(fbw_amount) > 3) and (int(fbs_amount) > 0) and (not is_less_hour_last_notification_redis(vendor)):
+                    elif (int(fbw_amount) > 3) and (int(fbs_amount) > 0):
                         text = texts.autostock_reset_fbs(vendor, fbs_amount, fbw_amount)
                     else:
                         continue
