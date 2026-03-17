@@ -17,7 +17,7 @@ def get_fbs_stocks(auth):
     for key in chrt_ids:
         chrt_ids_list.append(chrt_ids[key])
     fbs_stocks = wb_api.get_my_fbs_stocks(auth, warehouse_id, chrt_ids_list)
-    return fbs_stocks
+    return fbs_stocks, warehouse_id
 
 
 from datetime import datetime, timedelta, timezone

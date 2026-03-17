@@ -171,3 +171,28 @@ def get_fbw_supply_details(auth, supply_id):
     response = requests.get(url, headers=headers)
     return response
 
+
+def add_product_to_fbs_warehouse(auth, warehouse_id, chrt_id, amount):
+    url = f'https://marketplace-api.wildberries.ru/api/v3/stocks/{warehouse_id}'
+    headers = {'Authorization': auth}
+    body = {
+        'stocks': [
+            {
+                'chrtId': chrt_id,
+                'amount': amount
+            }
+        ]
+    }
+    response = requests.put(url, headers=headers, json=body)
+    return response
+
+
+# удалить товар со склада FBS
+def delete_product_from_fbs_warehouse(auth, warehouse_id, chrt_id):
+    url = f'https://marketplace-api.wildberries.ru/api/v3/stocks/{warehouse_id}'
+    headers = {'Authorization': auth}
+    body = {
+        'chrtIds': [chrt_id]
+    }
+    response = requests.delete(url, headers=headers, json=body)
+    return response
