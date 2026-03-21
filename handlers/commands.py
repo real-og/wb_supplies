@@ -1,15 +1,9 @@
 from aiogram import types
-from aiogram.dispatcher import FSMContext
-from aiogram.types import ReplyKeyboardRemove
 from states import State
 import keyboards as kb
-import wb_api
 import texts
-import datetime
-from loader import dp, bot
+from loader import dp
 import config_io
-import utils
-import sys
 import config_io
 from aiogram import types
 from aiogram.types import InputFile
@@ -22,7 +16,6 @@ async def send_welcome(message: types.Message):
     days_to_plan = config_io.get_value('DAYS_TO_PLAN')
     await message.answer(texts.generate_menu_text(autostock_mode, max_goods_amount, days_to_plan), reply_markup=kb.menu)
     await State.menu.set()
-
 
 
 @dp.message_handler(lambda message: str(message.from_user.id) in config_io.get_value('ADMINS'), commands=['menu'], state="*")

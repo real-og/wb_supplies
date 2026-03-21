@@ -23,7 +23,11 @@ logging.basicConfig(
     encoding="utf-8"
 )
 
-redis_client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True, db=1)
+if ACCOUNT_NAME == 'OOO':
+    redis_client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True, db=1)
+elif ACCOUNT_NAME == 'IP':
+    redis_client = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True, db=4)
+
 
 nmids_key = ACCOUNT_NAME + ":wb_nmids"
 nmid_prefix = ACCOUNT_NAME + ":wb_nmid"

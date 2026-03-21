@@ -152,6 +152,7 @@ def get_fbw_supplies(auth, status_ids=None, limit=1000, offset=0):
 
 # Получить товары одной FBW-поставки
 def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=0):
+    print(2)
     url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}/goods'
     headers = {'Authorization': auth}
     params = {
@@ -166,6 +167,7 @@ def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=
     return response
 
 def get_fbw_supply_details(auth, supply_id):
+    print(1)
     url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}'
     headers = {'Authorization': auth}
     response = requests.get(url, headers=headers)

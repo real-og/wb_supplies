@@ -8,3 +8,4 @@ db_worker_log.txt
 bot_log.txt
 autostock_log.txt
 *.xlsx
+report_coof.json

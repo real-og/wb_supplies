@@ -1,4 +1,5 @@
 import wb_api
+import time
 
 def get_my_chrt_ids(auth):
     my_cards_response = wb_api.get_my_cards(auth)
@@ -65,6 +66,7 @@ def get_fbw_in_transit_by_warehouse_and_vendor_code(auth):
             continue
 
         details_response = wb_api.get_fbw_supply_details(auth=auth, supply_id=supply_id)
+        time.sleep(1)
         details_response.raise_for_status()
         details = details_response.json()
 
@@ -78,6 +80,7 @@ def get_fbw_in_transit_by_warehouse_and_vendor_code(auth):
             result[warehouse_name] = {}
 
         goods_response = wb_api.get_fbw_supply_goods(auth=auth, supply_id=supply_id)
+        time.sleep(1)
         goods_response.raise_for_status()
         goods = goods_response.json()
 

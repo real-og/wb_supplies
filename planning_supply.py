@@ -294,6 +294,7 @@ if __name__ == "__main__":
     import wb_api_helper
     import wb_supply_excel_export
     import wb_supply_barcode_export
+    import wb_export_report_extended
 
     r = db_worker.get_all_nmid_data()
     import config_io
@@ -301,6 +302,7 @@ if __name__ == "__main__":
 
     result = plan_supply_from_wb_items(r, 2000, 28, in_transit_by_warehouse_vendor=wb_api_helper.get_fbw_in_transit_by_warehouse_and_vendor_code(WB_TOKEN))
 
+    wb_export_report_extended.export_supply_plan_to_excel(result, 'отчет2.xlsx', 28, 2000, 0.7622)
     wb_supply_excel_export.export_supply_plan_to_excel(result, 'отчет.xlsx', 28, 2000)
     wb_supply_barcode_export.export_supply_barcodes_to_excel(result, 'генерация.xlsx', barcode_by_nmid=wb_api_helper.nm_id_to_barcode(WB_TOKEN))
 

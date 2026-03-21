@@ -1,7 +1,4 @@
-from aiogram.types import ReplyKeyboardRemove, \
-    ReplyKeyboardMarkup, KeyboardButton, \
-    InlineKeyboardMarkup, InlineKeyboardButton
-from typing import List
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import buttons
 
 

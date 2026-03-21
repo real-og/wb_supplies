@@ -16,6 +16,14 @@ def get_export_filename():
     NAME = config_io.get_value('ACCOUNT_NAME')
     return f'{NAME}_export_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.xlsx'
 
+def get_report_filename_ex():
+    NAME = config_io.get_value('ACCOUNT_NAME')
+    return f'{NAME}_report_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}-extended.xlsx'
+
+def get_export_filename_ex():
+    NAME = config_io.get_value('ACCOUNT_NAME')
+    return f'{NAME}_export_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}-extended.xlsx'
+
 from pathlib import Path
 
 def delete_file_by_name(filename: str, folder: str = "content") -> bool:

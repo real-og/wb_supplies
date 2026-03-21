@@ -3,21 +3,11 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 from states import State
 import keyboards as kb
-import wb_api
 import texts
-import datetime
 from loader import dp, bot
 import config_io
-import utils
-import sys
 import config_io
-import planning_supply
-import db_worker
-import wb_api_helper
-import wb_supply_excel_export
-import wb_supply_barcode_export
 from aiogram import types
-from aiogram.types import InputFile
 
 
 @dp.callback_query_handler(state=State.settings)
