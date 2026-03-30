@@ -23,7 +23,9 @@ from datetime import date
 
 @dp.message_handler(lambda message: str(message.from_user.id) in config_io.get_value('ADMINS'), commands=['generate'], state="*")
 async def send_welcome(message: types.Message):
+    print(-1)
     await message.answer(texts.generation_in_process)
+    print(0)
     WB_TOKEN = config_io.get_value('WB_TOKEN')
     autostock_mode = config_io.get_value('AUTOSTOCK_MODE')
     max_goods_amount = int(config_io.get_value('MAX_FBW_GOODS_AMOUNT'))
