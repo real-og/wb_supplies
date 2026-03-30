@@ -45,6 +45,7 @@ async def send_welcome(message: types.Message):
     coof = coof_calc.calculate_sales_ratio_from_json_by_calendar_days('report_coof.json', int(days_to_plan), date.today().strftime("%Y-%m-%d"))['ratio_future_to_past']
     print(5)
     bar_tonmid = wb_api_helper.nm_id_to_barcode(WB_TOKEN)
+    print(bar_tonmid)
     print(6)
     wb_supply_excel_export.export_supply_plan_to_excel(result, name_report, days_to_plan, max_goods_amount)
     print(7)

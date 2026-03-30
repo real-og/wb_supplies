@@ -1,24 +1,100 @@
 import requests
+import copy
+import json
+import time
+import requests
 
 # Получаю до 100 карточек на аккаунте
 def get_my_cards(auth):
     url = 'https://content-api.wildberries.ru/content/v2/get/cards/list'
     headers = {'Authorization': auth}
-    body = {
-     "settings": {
-       "sort": {
-         "ascending": True
-       },
-       "cursor": {
-         "limit": 100
-       },
-       "filter": {
-         "withPhoto": -1
-       }
-     }
-   }
-    response = requests.post(url, headers=headers, json=body)
-    return response
+    base_body = {
+    "settings": {
+        "sort": {
+            "ascending": True
+        },
+        "cursor": {
+            "limit": 100
+        },
+        "filter": {
+            "withPhoto": -1
+        }
+    }
+}
+
+    body = copy.deepcopy(base_body)
+    all_cards = []
+    first_response = None
+    last_response_json = None
+    limit = body["settings"]["cursor"]["limit"]
+
+    while True:
+        response = requests.post(url, headers=headers, json=body)
+
+        # если какая-то страница вернула ошибку — возвращаем как есть
+        if not response.ok:
+            return response
+
+        response_json = response.json()
+
+        if first_response is None:
+            first_response = response
+
+        cards = response_json.get("cards", [])
+        all_cards.extend(cards)
+        last_response_json = response_json
+
+        cursor = response_json.get("cursor", {}) or {}
+        page_total = cursor.get("total", len(cards))
+
+        # по документации: если total < limit, значит это последняя страница
+        if page_total < limit:
+            break
+
+        updated_at = cursor.get("updatedAt")
+        nm_id = cursor.get("nmID")
+
+        # если курсора нет, дальше пагинировать нельзя
+        if not updated_at or nm_id is None:
+            break
+
+        body["settings"]["cursor"] = {
+            "limit": limit,
+            "updatedAt": updated_at,
+            "nmID": nm_id
+        }
+
+        time.sleep(0.65)
+
+    # оставляем тот же формат response, но подменяем body на объединенный JSON
+    merged_json = dict(last_response_json or {})
+    merged_json["cards"] = all_cards
+
+    first_response._content = json.dumps(
+        merged_json,
+        ensure_ascii=False
+    ).encode("utf-8")
+    first_response.encoding = "utf-8"
+
+    return first_response
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def get_my_fbs_warehouses(auth):
@@ -152,7 +228,6 @@ def get_fbw_supplies(auth, status_ids=None, limit=1000, offset=0):
 
 # Получить товары одной FBW-поставки
 def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=0):
-    print(2)
     url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}/goods'
     headers = {'Authorization': auth}
     params = {
@@ -167,7 +242,6 @@ def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=
     return response
 
 def get_fbw_supply_details(auth, supply_id):
-    print(1)
     url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}'
     headers = {'Authorization': auth}
     response = requests.get(url, headers=headers)
