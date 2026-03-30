@@ -17,7 +17,7 @@ STEP_TIMEOUT = 30
 import logging
 
 logging.basicConfig(
-    filename="db_worker_log.txt",
+    # filename="db_worker_log.txt",
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     encoding="utf-8"

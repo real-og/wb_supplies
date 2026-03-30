@@ -5,7 +5,9 @@ import logging
 import config_io
 
 
-logging.basicConfig(level=logging.WARNING, filename='bot_log.txt')
+logging.basicConfig(level=logging.WARNING,
+                    #  filename='bot_log.txt'
+                     )
 
 BOT_TOKEN = config_io.get_value('BOT_TOKEN')
 ACCOUNT_NAME = config_io.get_value('ACCOUNT_NAME')

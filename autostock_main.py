@@ -10,7 +10,7 @@ import db_worker
 import logging
 
 logging.basicConfig(
-    filename="autostock_log.txt",
+    # filename="autostock_log.txt",
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     encoding="utf-8"
