@@ -91,6 +91,7 @@ if __name__ == "__main__":
     while True:
         try:
             response = wb_api.get_my_cards(WB_TOKEN)
+            print(response)
             cards = response.json().get("cards", [])
         except Exception:
             logging.exception("Ошибка получения карточек")
@@ -110,6 +111,7 @@ if __name__ == "__main__":
                     utils.get_date_n_days_ago(DAYS_TO_COLLECT_STAT),
                     utils.get_today_date()
                 )
+                print(response_for_nm_id)
 
                 data = response_for_nm_id.json()
                 upsert_nmid_data(int(nm_id), vendor, data)

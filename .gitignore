@@ -9,3 +9,4 @@ bot_log.txt
 autostock_log.txt
 *.xlsx
 report_coof.json
+__pycache__

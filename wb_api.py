@@ -12,15 +12,15 @@ def get_my_cards(auth):
     "settings": {
         "sort": {
             "ascending": True
-        },
+            },
         "cursor": {
             "limit": 100
-        },
+            },
         "filter": {
             "withPhoto": -1
+            }
         }
     }
-}
 
     body = copy.deepcopy(base_body)
     all_cards = []
@@ -80,24 +80,8 @@ def get_my_cards(auth):
     
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def get_my_fbs_warehouses(auth):
+    # 300 per 1 min
     url = 'https://marketplace-api.wildberries.ru/api/v3/warehouses'
     headers = {'Authorization': auth}
     response = requests.get(url, headers=headers)
@@ -105,6 +89,7 @@ def get_my_fbs_warehouses(auth):
 
 
 def get_my_fbs_stocks(auth, warehouse_id, chrt_ids):
+    # 300 per 1 min
     url = f'https://marketplace-api.wildberries.ru/api/v3/stocks/{warehouse_id}'
     headers = {'Authorization': auth}
     body = {'chrtIds':chrt_ids}
@@ -114,6 +99,7 @@ def get_my_fbs_stocks(auth, warehouse_id, chrt_ids):
 
 # получить остатки по всем складам (для автостока особенно)
 def get_stocks_report_by_products(auth, period_start, period_end):
+    # 3 per 1 min
     url = 'https://seller-analytics-api.wildberries.ru/api/v2/stocks-report/products/products'
     headers = {'Authorization': auth}
     body = {
@@ -139,11 +125,13 @@ def get_stocks_report_by_products(auth, period_start, period_end):
         "offset": 0
     }
     response = requests.post(url, headers=headers, json=body)
+    print(response.text)
     return response
 
 
 #получить инфу как в кабинете в аналитеке по складам по одному товару раз в 20 сек
 def get_stocks_report_by_sizes(auth, nm_id, period_start, period_end):
+    # 3 per 1 min
     url = 'https://seller-analytics-api.wildberries.ru/api/v2/stocks-report/products/sizes'
     headers = {'Authorization': auth}
     body = {
@@ -163,34 +151,11 @@ def get_stocks_report_by_sizes(auth, nm_id, period_start, period_end):
     return response
 
 
-# def get_stocks_report_by_offices(auth, period_start, period_end):
-#     url = 'https://seller-analytics-api.wildberries.ru/api/v2/stocks-report/offices'
-#     headers = {'Authorization': auth}
-#     body = {
-#         "currentPeriod": {
-#             "start": period_start,
-#             "end": period_end
-#         },
-#         "stockType": "wb",
-#         "skipDeletedNm": True,
-#     }
-#     response = requests.post(url, headers=headers, json=body)
-#     return response
-
-
-# def get_stat_wb_offices(auth, period_start):
-#     url = 'https://statistics-api.wildberries.ru/api/v1/supplier/stocks'
-#     headers = {'Authorization': auth}
-#     params = {'dateFrom': period_start}
-#     response = requests.get(url, headers=headers, params=params)
-#     return response
-
-
-
 
 
 # получить текущие остатки товаров на складах вб в моменте отчетом
 def create_stat_report_wb_offices(auth):
+    # 1 per 1 min
     url = 'https://seller-analytics-api.wildberries.ru/api/v1/warehouse_remains'
     headers = {'Authorization': auth}
     params = {'groupBySa': True}
@@ -198,12 +163,14 @@ def create_stat_report_wb_offices(auth):
     return response
 
 def check_status_stat_report_wb_offices(auth, task_id):
+    # 12 per 1 min
     url = f'https://seller-analytics-api.wildberries.ru/api/v1/warehouse_remains/tasks/{task_id}/status'
     headers = {'Authorization': auth}
     response = requests.get(url, headers=headers)
     return response
 
 def get_stat_report_wb_offices(auth, task_id):
+    # 1 per 1 min
     url = f'https://seller-analytics-api.wildberries.ru/api/v1/warehouse_remains/tasks/{task_id}/download'
     headers = {'Authorization': auth}
     response = requests.get(url, headers=headers)
@@ -211,6 +178,7 @@ def get_stat_report_wb_offices(auth, task_id):
 
 
 def get_fbw_supplies(auth, status_ids=None, limit=1000, offset=0):
+    # 30 per 1 min
     url = 'https://supplies-api.wildberries.ru/api/v1/supplies'
     headers = {'Authorization': auth}
     params = {
@@ -228,6 +196,7 @@ def get_fbw_supplies(auth, status_ids=None, limit=1000, offset=0):
 
 # Получить товары одной FBW-поставки
 def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=0):
+    # 30 per 1 min
     url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}/goods'
     headers = {'Authorization': auth}
     params = {
@@ -242,6 +211,7 @@ def get_fbw_supply_goods(auth, supply_id, is_preorder=False, limit=1000, offset=
     return response
 
 def get_fbw_supply_details(auth, supply_id):
+    # 30 per 1 min
     url = f'https://supplies-api.wildberries.ru/api/v1/supplies/{supply_id}'
     headers = {'Authorization': auth}
     response = requests.get(url, headers=headers)
@@ -249,6 +219,7 @@ def get_fbw_supply_details(auth, supply_id):
 
 
 def add_product_to_fbs_warehouse(auth, warehouse_id, chrt_id, amount):
+    # 300 per 1 min
     url = f'https://marketplace-api.wildberries.ru/api/v3/stocks/{warehouse_id}'
     headers = {'Authorization': auth}
     body = {
@@ -265,6 +236,7 @@ def add_product_to_fbs_warehouse(auth, warehouse_id, chrt_id, amount):
 
 # удалить товар со склада FBS
 def delete_product_from_fbs_warehouse(auth, warehouse_id, chrt_id):
+    # 10 per 1 min
     url = f'https://marketplace-api.wildberries.ru/api/v3/stocks/{warehouse_id}'
     headers = {'Authorization': auth}
     body = {
