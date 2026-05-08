@@ -244,3 +244,11 @@ def delete_product_from_fbs_warehouse(auth, warehouse_id, chrt_id):
     }
     response = requests.delete(url, headers=headers, json=body)
     return response
+
+
+def get_fbw_warehouses(auth):
+    # 6 per 1 min
+    url = f'https://supplies-api.wildberries.ru/api/v1/warehouses'
+    headers = {'Authorization': auth}
+    response = requests.get(url, headers=headers)
+    return response

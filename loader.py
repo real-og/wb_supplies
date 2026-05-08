@@ -12,9 +12,9 @@ logging.basicConfig(level=logging.WARNING,
 BOT_TOKEN = config_io.get_value('BOT_TOKEN')
 ACCOUNT_NAME = config_io.get_value('ACCOUNT_NAME')
 
-if ACCOUNT_NAME == 'OOO':
+if ACCOUNT_NAME == 'RASTR':
     storage = RedisStorage2(db=1)
-elif ACCOUNT_NAME == 'IP':
+elif ACCOUNT_NAME == 'BUTKEVICH':
     storage = RedisStorage2(db=4)
 
 bot = Bot(token=BOT_TOKEN, parse_mode="HTML")

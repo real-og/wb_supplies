@@ -8,6 +8,7 @@ from loader import dp, bot
 import config_io
 import config_io
 from aiogram import types
+import wb_api
 
 
 @dp.callback_query_handler(state=State.settings)
@@ -36,7 +37,22 @@ async def send_series(callback: types.CallbackQuery, state: FSMContext):
         excluded = config_io.get_value('AUTOSTOCK_EXCLUDE')
         await callback.message.answer(texts.generate_excluded_text(excluded), reply_markup=kb.back_to_menu)
         await State.autostock_excluded.set()
+    
+    elif callback.data == 'choose_warehouses':
+        warehouses_wb = wb_api.get_fbw_warehouses(config_io.get_value('WB_TOKEN')).json()
+        choosed_warehouses = config_io.get_value('CHOOSED_WAREHOUSES')
 
+        warehouses_parts = []
+
+        for i in range(0, len(warehouses_wb), 50):
+            warehouses_parts.append(warehouses_wb[i:i + 50])
+
+        for part in warehouses_parts:
+            await callback.message.answer(texts.choose_warehouse, reply_markup=kb.warehouses_kb(part, choosed_warehouses))
+
+        await callback.message.answer('Когда завершите, возвращайтесь в меню', reply_markup=kb.back_to_menu)
+        await State.choosing_warehouses.set()
+        
     await bot.answer_callback_query(callback.id)
 
 
@@ -105,6 +121,32 @@ async def send_welcome(message: types.Message):
         excluded.append(message.text)
         config_io.update_key('AUTOSTOCK_EXCLUDE', excluded)
         await message.answer('Добавлено', reply_markup=kb.back_to_menu)
+
+
+@dp.callback_query_handler(state=State.choosing_warehouses)
+async def send_series(callback: types.CallbackQuery, state: FSMContext):
+    choosed_warehouses = config_io.get_value('CHOOSED_WAREHOUSES')
+    if callback.data == 'menu':
+        autostock_mode = config_io.get_value('AUTOSTOCK_MODE')
+        max_goods_amount = config_io.get_value('MAX_FBW_GOODS_AMOUNT')
+        days_to_plan = config_io.get_value('DAYS_TO_PLAN')
+        await callback.message.answer(texts.generate_menu_text(autostock_mode, max_goods_amount, days_to_plan), reply_markup=kb.menu)
+        await State.menu.set()
+    else:
+        choosed_warehouses = config_io.get_value('CHOOSED_WAREHOUSES')
+        warehouse_id = callback.data
+        if warehouse_id in choosed_warehouses:
+            choosed_warehouses.remove(warehouse_id)
+        else:
+            choosed_warehouses.append(warehouse_id)
+        config_io.update_key('CHOOSED_WAREHOUSES', choosed_warehouses)
+        new_markup = kb.update_warehouses_keyboard(
+            callback.message.reply_markup,
+            choosed_warehouses
+        ) 
+        await callback.message.edit_reply_markup(reply_markup=new_markup)
+
+    await bot.answer_callback_query(callback.id)
 
 
 

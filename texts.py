@@ -42,6 +42,9 @@ def generate_excluded_text(excluded):
         return 'Сейчас все товары отслеживаются автостоком'
     else:
         return f'Следующие товары не отслеживаются автостоком {excluded}'
+    
+
+choose_warehouse = 'Выбирайте склады для отобраения.'
 
 
 

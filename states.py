@@ -8,3 +8,4 @@ class State(StatesGroup):
     max_days = State()
     autostock_mode = State()
     autostock_excluded = State()
+    choosing_warehouses = State()

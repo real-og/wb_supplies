@@ -6,7 +6,6 @@ import texts
 from loader import dp, bot
 import config_io
 import utils
-import config_io
 import planning_supply
 import db_worker
 import wb_api_helper
