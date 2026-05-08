@@ -125,7 +125,6 @@ def get_stocks_report_by_products(auth, period_start, period_end):
         "offset": 0
     }
     response = requests.post(url, headers=headers, json=body)
-    print(response.text)
     return response
 
 
