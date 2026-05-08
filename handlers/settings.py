@@ -138,7 +138,7 @@ async def send_series(callback: types.CallbackQuery, state: FSMContext):
         if warehouse_id in choosed_warehouses:
             choosed_warehouses.remove(warehouse_id)
         else:
-            choosed_warehouses.append(warehouse_id)
+            choosed_warehouses.append(str(warehouse_id))
         config_io.update_key('CHOOSED_WAREHOUSES', choosed_warehouses)
         new_markup = kb.update_warehouses_keyboard(
             callback.message.reply_markup,

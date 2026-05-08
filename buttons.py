@@ -7,3 +7,4 @@ days_to_plan = "Кол-во дней для планирования"
 autostock_excluded = 'Исключения автосток'
 choose_warehouse = 'Отображаемые склады'
 menu = 'Меню'
+generate_warehouse = 'Генерировать на склад'

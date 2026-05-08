@@ -17,6 +17,7 @@ import wb_export_bar_extended
 import wb_export_report_extended
 import coof_calc
 from datetime import date
+import wb_api
 
 
 
@@ -121,6 +122,18 @@ async def send_series(callback: types.CallbackQuery, state: FSMContext):
     elif callback.data == 'settings':
         await callback.message.answer(texts.settings, reply_markup=kb.settings)
         await State.settings.set()
+
+    elif callback.data == 'generate_warehouse':
+        warehouses_wb = wb_api.get_fbw_warehouses(config_io.get_value('WB_TOKEN')).json()
+        choosed_warehouses = config_io.get_value('CHOOSED_WAREHOUSES')
+
+        warehouses_to_draw = []
+        for wh in warehouses_wb:
+            if str(wh['ID']) in choosed_warehouses:
+                warehouses_to_draw.append(wh)
+        
+        await callback.message.answer(texts.choose_warehouse_to_get_report, reply_markup=kb.warehouses_with_menu_kb(warehouses_to_draw, []))
+        await State.warehouse_to_report.set()
 
     await bot.answer_callback_query(callback.id)
     

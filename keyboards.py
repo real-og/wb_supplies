@@ -4,9 +4,11 @@ import buttons
 
 menu = InlineKeyboardMarkup()
 button_1 = InlineKeyboardButton(text=buttons.generate, callback_data='generate')
-button_2 = InlineKeyboardButton(text=buttons.settings, callback_data='settings')
+button_2 = InlineKeyboardButton(text=buttons.generate_warehouse, callback_data='generate_warehouse')
+button_3 = InlineKeyboardButton(text=buttons.settings, callback_data='settings')
 menu.add(button_1)
 menu.add(button_2)
+menu.add(button_3)
 
 settings = InlineKeyboardMarkup()
 button_1 = InlineKeyboardButton(text=buttons.max_goods, callback_data='max_goods')
@@ -42,6 +44,16 @@ def warehouses_kb(warehouses, choosed):
         if str(wh['ID']) in choosed:
             name = '✅ ' + name
         kb.add(InlineKeyboardButton(text=name, callback_data=wh['ID']))
+    return kb
+
+def warehouses_with_menu_kb(warehouses, choosed):
+    kb = InlineKeyboardMarkup()
+    for wh in warehouses:
+        name = wh['name']
+        if str(wh['ID']) in choosed:
+            name = '✅ ' + name
+        kb.add(InlineKeyboardButton(text=name, callback_data=wh['ID']))
+    kb.add(InlineKeyboardButton(text=buttons.menu, callback_data='menu'))
     return kb
 
 

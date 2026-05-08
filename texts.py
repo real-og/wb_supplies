@@ -44,7 +44,8 @@ def generate_excluded_text(excluded):
         return f'Следующие товары не отслеживаются автостоком {excluded}'
     
 
-choose_warehouse = 'Выбирайте склады для отобраения.'
+choose_warehouse = 'Выбирайте склады для отобраения'
+choose_warehouse_to_get_report = "Выберите склад на поставку"
 
 
 

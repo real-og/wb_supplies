@@ -16,6 +16,14 @@ def get_export_filename():
     NAME = config_io.get_value('ACCOUNT_NAME')
     return f'{NAME}_WBexport_{datetime.now().strftime("%Y.%m.%d__%Hh%Mmin")}.xlsx'
 
+def get_report_filename_warehouse():
+    NAME = config_io.get_value('ACCOUNT_NAME')
+    return f'{NAME}_WAREHOUSE_report_{datetime.now().strftime("%Y.%m.%d__%Hh%Mmin")}.xlsx'
+
+def get_export_filename_warehouse():
+    NAME = config_io.get_value('ACCOUNT_NAME')
+    return f'{NAME}_WB_WAREHOUSE_export_{datetime.now().strftime("%Y.%m.%d__%Hh%Mmin")}.xlsx'
+
 def get_report_filename_ex():
     NAME = config_io.get_value('ACCOUNT_NAME')
     return f'{NAME}_report_{datetime.now().strftime("%Y.%m.%d__%Hh%Mmin")}_extended.xlsx'

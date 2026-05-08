@@ -286,6 +286,297 @@ def plan_supply_from_wb_items(
     }
 
 
+import math
+from typing import Any, Optional
+
+
+def calc_supply_for_warehouse(
+    items: list[dict[str, Any]],
+    warehouse_id: int,
+    target_days: int | float,
+    in_transit_by_warehouse_vendor: Optional[dict[str, dict[str, int | float]]] = None,
+    sales_period_days: int | float = 14,
+    include_zero_sales: bool = True,
+    include_zero_shipment: bool = True,
+) -> dict[str, Any]:
+    """
+    Считает, сколько каждого товара нужно отгрузить на конкретный склад.
+
+    :param items: список товаров из WB-аналитики
+    :param warehouse_id: officeID склада, например 206348 для Тулы
+    :param target_days: на сколько дней должен хватить товар
+    :param in_transit_by_warehouse_vendor: {'Тула': {'DB1': 24, ...}}
+    :param sales_period_days: за сколько дней ordersCount, по умолчанию 14
+    :param include_zero_sales: включать ли товары без продаж
+    :param include_zero_shipment: включать ли товары, которым не нужна отгрузка
+    """
+
+    if target_days <= 0:
+        raise ValueError("target_days должен быть больше 0")
+
+    if sales_period_days <= 0:
+        raise ValueError("sales_period_days должен быть больше 0")
+
+    in_transit_by_warehouse_vendor = in_transit_by_warehouse_vendor or {}
+
+    warehouse_name = _find_warehouse_name_by_id(items, warehouse_id)
+
+    transit_for_warehouse = in_transit_by_warehouse_vendor.get(warehouse_name, {})
+
+    result_items = []
+
+    totals = {
+        "stockCount": 0,
+        "inTransitCount": 0,
+        "effectiveStockCount": 0,
+        "ordersCount": 0,
+        "dailySales": 0,
+        "targetStockCount": 0,
+        "needToShipCount": 0,
+    }
+
+    for item in items:
+        nm_id = item.get("nmID")
+        vendor = str(item.get("vendor", "")).strip()
+        timestamp = item.get("timestamp")
+
+        office = _find_office_in_item(item, warehouse_id)
+
+        if office is None:
+            metrics = {}
+            office_found = False
+            region_name = None
+            office_name = warehouse_name
+        else:
+            metrics = office.get("metrics") or {}
+            office_found = True
+            region_name = office.get("regionName")
+            office_name = office.get("officeName")
+
+        stock_count = _to_number(metrics.get("stockCount"))
+        orders_count = max(0, _to_number(metrics.get("ordersCount")))
+        orders_sum = max(0, _to_number(metrics.get("ordersSum")))
+        buyout_count = max(0, _to_number(metrics.get("buyoutCount")))
+        buyout_sum = max(0, _to_number(metrics.get("buyoutSum")))
+        buyout_percent = max(0, _to_number(metrics.get("buyoutPercent")))
+
+        daily_sales = orders_count / sales_period_days
+
+        in_transit_count, matched_transit_keys = _get_in_transit_qty(
+            vendor=vendor,
+            transit_for_warehouse=transit_for_warehouse,
+        )
+
+        effective_stock = stock_count + in_transit_count
+
+        if daily_sales > 0:
+            target_stock = math.ceil(daily_sales * target_days)
+            need_to_ship = max(0, target_stock - effective_stock)
+
+            days_with_current_stock = stock_count / daily_sales
+            days_with_in_transit = effective_stock / daily_sales
+            days_after_shipment = (effective_stock + need_to_ship) / daily_sales
+        else:
+            target_stock = 0
+            need_to_ship = 0
+
+            days_with_current_stock = None
+            days_with_in_transit = None
+            days_after_shipment = None
+
+        if not include_zero_sales and orders_count == 0:
+            continue
+
+        if not include_zero_shipment and need_to_ship == 0:
+            continue
+
+        item_result = {
+            "nmID": nm_id,
+            "vendor": vendor,
+            "timestamp": timestamp,
+
+            "warehouse": {
+                "officeID": warehouse_id,
+                "officeName": office_name,
+                "regionName": region_name,
+                "foundInProductOffices": office_found,
+            },
+
+            "sales": {
+                "ordersCount": orders_count,
+                "ordersSum": orders_sum,
+                "salesPeriodDays": sales_period_days,
+                "dailySales": round(daily_sales, 4),
+
+                "buyoutCount": buyout_count,
+                "buyoutSum": buyout_sum,
+                "buyoutPercent": buyout_percent,
+            },
+
+            "stock": {
+                "stockCount": stock_count,
+                "inTransitCount": in_transit_count,
+                "matchedTransitVendorKeys": matched_transit_keys,
+                "effectiveStockCount": effective_stock,
+            },
+
+            "planning": {
+                "targetDays": target_days,
+                "targetStockCount": target_stock,
+                "needToShipCount": int(need_to_ship),
+
+                "daysWithCurrentStock": _round_or_none(days_with_current_stock),
+                "daysWithInTransit": _round_or_none(days_with_in_transit),
+                "daysAfterShipment": _round_or_none(days_after_shipment),
+
+                "shortageBeforeShipment": int(max(0, target_stock - effective_stock)),
+                "surplusBeforeShipment": int(max(0, effective_stock - target_stock)),
+            },
+        }
+
+        result_items.append(item_result)
+
+        totals["stockCount"] += stock_count
+        totals["inTransitCount"] += in_transit_count
+        totals["effectiveStockCount"] += effective_stock
+        totals["ordersCount"] += orders_count
+        totals["dailySales"] += daily_sales
+        totals["targetStockCount"] += target_stock
+        totals["needToShipCount"] += need_to_ship
+
+    result_items.sort(
+        key=lambda x: (
+            x["planning"]["needToShipCount"],
+            x["sales"]["dailySales"],
+            x["sales"]["ordersCount"],
+        ),
+        reverse=True,
+    )
+
+    total_daily_sales = totals["dailySales"]
+
+    if total_daily_sales > 0:
+        total_days_with_current_stock = totals["stockCount"] / total_daily_sales
+        total_days_with_in_transit = totals["effectiveStockCount"] / total_daily_sales
+        total_days_after_shipment = (
+            totals["effectiveStockCount"] + totals["needToShipCount"]
+        ) / total_daily_sales
+    else:
+        total_days_with_current_stock = None
+        total_days_with_in_transit = None
+        total_days_after_shipment = None
+
+    return {
+        "warehouse": {
+            "officeID": warehouse_id,
+            "officeName": warehouse_name,
+        },
+        "params": {
+            "targetDays": target_days,
+            "salesPeriodDays": sales_period_days,
+            "inTransitIsCountedAsArrived": True,
+        },
+        "summary": {
+            "itemsCount": len(result_items),
+
+            "totalStockCount": int(totals["stockCount"]),
+            "totalInTransitCount": int(totals["inTransitCount"]),
+            "totalEffectiveStockCount": int(totals["effectiveStockCount"]),
+
+            "totalOrdersCount": int(totals["ordersCount"]),
+            "totalDailySales": round(total_daily_sales, 4),
+
+            "totalTargetStockCount": int(totals["targetStockCount"]),
+            "totalNeedToShipCount": int(totals["needToShipCount"]),
+
+            "totalDaysWithCurrentStock": _round_or_none(total_days_with_current_stock),
+            "totalDaysWithInTransit": _round_or_none(total_days_with_in_transit),
+            "totalDaysAfterShipment": _round_or_none(total_days_after_shipment),
+        },
+        "items": result_items,
+    }
+
+
+def _find_warehouse_name_by_id(
+    items: list[dict[str, Any]],
+    warehouse_id: int,
+) -> str:
+    for item in items:
+        for office in item.get("data", {}).get("offices", []):
+            if office.get("officeID") == warehouse_id:
+                return office.get("officeName")
+
+    raise ValueError(f"Склад с officeID={warehouse_id} не найден в данных товаров")
+
+
+def _find_office_in_item(
+    item: dict[str, Any],
+    warehouse_id: int,
+) -> Optional[dict[str, Any]]:
+    for office in item.get("data", {}).get("offices", []):
+        if office.get("officeID") == warehouse_id:
+            return office
+
+    return None
+
+
+def _get_in_transit_qty(
+    vendor: str,
+    transit_for_warehouse: dict[str, int | float],
+) -> tuple[int, list[str]]:
+    """
+    Ищет товар в поставках в пути.
+
+    Поддерживает:
+    - точное совпадение: KFB1
+    - составные ключи через /: DB5/KFB1
+
+    Это нужно из-за таких записей:
+    {'Казань': {'DB5/KFB1': 3}}
+    """
+
+    total = 0
+    matched_keys = []
+
+    vendor_parts = _split_vendor_code(vendor)
+
+    for transit_vendor_key, qty in transit_for_warehouse.items():
+        transit_vendor_key = str(transit_vendor_key).strip()
+        transit_parts = _split_vendor_code(transit_vendor_key)
+
+        matched = bool(vendor_parts & transit_parts)
+
+        if matched:
+            total += _to_number(qty)
+            matched_keys.append(transit_vendor_key)
+
+    return int(total), matched_keys
+
+
+def _split_vendor_code(value: str) -> set[str]:
+    return {
+        part.strip()
+        for part in str(value).split("/")
+        if part.strip()
+    }
+
+
+def _to_number(value: Any) -> float:
+    if value is None:
+        return 0
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _round_or_none(value: Optional[float], ndigits: int = 2) -> Optional[float]:
+    if value is None:
+        return None
+
+    return round(value, ndigits)
+
 
 
 if __name__ == "__main__":

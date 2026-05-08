@@ -9,3 +9,4 @@ class State(StatesGroup):
     autostock_mode = State()
     autostock_excluded = State()
     choosing_warehouses = State()
+    warehouse_to_report = State()
